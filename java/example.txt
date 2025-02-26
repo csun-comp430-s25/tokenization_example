@@ -1,0 +1,12 @@
+type Token =
+  Identifier(String) |
+  Integer(int) |
+  LParen |
+  RParen |
+  Plus |
+  Minus |
+  Star |
+  Div |
+  Equals |
+  Semicolon |
+  Print.
