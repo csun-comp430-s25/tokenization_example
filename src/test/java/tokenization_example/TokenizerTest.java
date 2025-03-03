@@ -14,6 +14,20 @@ public class TokenizerTest {
     }
 
     @Test
+    public void testSingleWhitespace() {
+        final Tokenizer tokenizer = new Tokenizer(" ");
+        tokenizer.skipWhitespace();
+        assertEquals(1, tokenizer.getPosition());
+    }
+
+    @Test
+    public void testSingleWhitespaceAndA() {
+        final Tokenizer tokenizer = new Tokenizer(" a");
+        tokenizer.skipWhitespace();
+        assertEquals(1, tokenizer.getPosition());
+    }
+    
+    @Test
     public void testReadSingleDigitInteger() {
         final Tokenizer tokenizer = new Tokenizer("1");
         assertEquals(Optional.of(new IntegerToken(1)),
