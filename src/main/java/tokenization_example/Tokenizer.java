@@ -1,6 +1,7 @@
 package tokenization_example;
 
 import java.util.Optional;
+import java.util.ArrayList;
 
 public class Tokenizer {
     public final String input;
@@ -52,7 +53,7 @@ public class Tokenizer {
         }
     } // tryReadIntegerToken
                                         
-    public Optional<Token> tryReadIdentifierToken() {
+    public Optional<Token> tryReadIdentifierOrReservedWordToken() {
         if (position < input.length() &&
             Character.isLetter(input.charAt(position))) {
             String chars = "" + input.charAt(position);
@@ -62,9 +63,47 @@ public class Tokenizer {
                 chars += input.charAt(position);
                 position++;
             }
-            return Optional.of(new IdentifierToken(chars));
+            if (chars.equals("print")) {
+                return Optional.of(new PrintToken());
+            } else {
+                return Optional.of(new IdentifierToken(chars));
+            }
         } else {
             return Optional.empty();
         }
-    }
+    } // tryReadIdentifierOrReservedWordToken
+
+    public Optional<Token> tryReadSymbol() {
+        if (input.startsWith("(", position)) {
+            position++;
+            return Optional.of(new LParenToken());
+        } else if (input.startsWith(")", position)) {
+            position++;
+            return Optional.of(new RParenToken());
+        } else {
+            return Optional.empty();
+        }
+    } // tryReadSymbol
+
+    // assumes we aren't on whitespace and we are in range
+    public Token readToken() throws TokenizerException {
+        Optional<Token> token;
+        if ((token = tryReadIntegerToken()).isPresent() ||
+            (token = tryReadSymbol()).isPresent() ||
+            (token = tryReadIdentifierOrReservedWordToken()).isPresent()) {
+            return token.get();
+        } else {
+            throw new TokenizerException("Invalid char: " + input.charAt(position));
+        }
+    } // readToken
+        
+    public ArrayList<Token> tokenize() throws TokenizerException {
+        final ArrayList<Token> tokens = new ArrayList<Token>();
+        skipWhitespace();
+        while (position < input.length()) {
+            tokens.add(readToken());
+            skipWhitespace();
+        }
+        return tokens;
+    } // tokenize
 }
