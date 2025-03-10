@@ -1,7 +1,24 @@
 # Tokenization Example #
 
+
+NEXT TIME: stmt, then program, then exp
+
+Concrete grammar:
+
 ```
-exp ::= IDENTIFIER | INTEGER | exp op exp | `(` exp `)` | `*` exp
+primaryExp ::= IDENTIFIER | INTEGER | `(` exp `)`
+multExp ::= primaryExp ((`*` | `/`) primaryExp)*
+addExp ::= multExp ((`+` | `-`) multExp)*
+exp ::= addExp
+stmt ::= IDENTIFIER `=` exp `;` |
+         `print` exp `;`
+program ::= stmt*
+```
+
+Abstract grammar:
+
+```
+exp ::= IDENTIFIER | INTEGER | exp op exp
 op ::= `+` | `-` | `*` | `/`
 stmt ::= IDENTIFIER `=` exp `;` |
          `print` exp `;`
