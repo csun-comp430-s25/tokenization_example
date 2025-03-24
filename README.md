@@ -11,7 +11,8 @@ multExp ::= primaryExp ((`*` | `/`) primaryExp)*
 addExp ::= multExp ((`+` | `-`) multExp)*
 exp ::= addExp
 stmt ::= IDENTIFIER `=` exp `;` |
-         `print` exp `;`
+         `print` exp `;` |
+         `return` [exp] `;`
 program ::= stmt*
 ```
 
