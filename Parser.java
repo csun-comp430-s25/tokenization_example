@@ -12,8 +12,94 @@ public class Parser {
         }
     } // readToken
 
+    // public abstract class OperatorParser {
+    //     public abstract ParseResult<Exp> oneLevelUp(final int startPos) throws ParseException;
+    //     public abstract Optional<Op> theOperator(final Token token);
+
+    //     public ParseResult<Exp> parse(final int startPos) throws ParseException {
+    //         final ParseResult<Exp> m = oneLevelUp(startPos);
+    //         Exp result = m.result;
+    //         boolean shouldRun = true;
+    //         int pos = m.nextPos;
+    //         while (shouldRun) {
+    //             try {
+    //                 final Token t = getToken(pos);
+    //                 final Optional<Op> op = theOperator(t);
+    //                 if (op.isEmpty()) {
+    //                     throw new ParseException("Wrong operator");
+    //                 }
+    //                 final ParseResult<Exp> m2 = oneLevelUp(pos + 1);
+    //                 result = new BinOpExp(result, op, m2.result);
+    //                 pos = m2.nextPos;
+    //             } catch (ParseException e) {
+    //                 shouldRun = false;
+    //             }
+    //         }
+    //         return new ParseResult<Exp>(result, pos);
+    //     } // parse
+    // } // OperatorParser
+
+    // public class MultExpParser extends OperatorParser {
+    //     public ParseResult<Exp> oneLevelUp(final int startPos) throws ParseException {
+    //         return primaryExp(startPos);
+    //     }
+    //     public Optional<Op> theOperator(final Token token) {
+    //         if (token instanceof PlusToken) {
+    //             return Optional.of(new PlusOp());
+    //         } else if (token instanceof MinusToken) {
+    //             return Optional.of(new MinusOp());
+    //         } else {
+    //             return Optional.empty();
+    //         }
+    //     }
+    // } // MultExpParser
+
+    // public ParseResult<Exp> multExp(final int startPos) throws ParseException {
+    //     return new MultExpParser().parse(startPos);
+    // }
+
+    // primaryExp ::= IDENTIFIER | INTEGER | `(` exp `)`
+    public ParseResult<Exp> primaryExp(final int startPos) throws ParseException {
+        final Token t = getToken(startPos);
+        if (t instanceof IdentifierToken id) {
+            return new ParseResult<Exp>(new IdExp(id.name), startPos + 1);
+        } else if (t instanceof IntegerToken i) {
+            return new ParseResult<Exp>(new IntExp(i.value), startPos + 1);
+        } else if (t instanceof LParenToken) {
+            final ParseResult<Exp> e = exp(startPos + 1);
+            assertTokenIs(e.nextPos, new RParenToken());
+            return new ParseResult<Exp>(e.result, e.nextPos + 1);
+        } else {
+            throw new ParseException("Expected primary expression at position: " + startPos);
+        }
+    } // primaryExp
+    
     // multExp ::= primaryExp ((`*` | `/`) primaryExp)*
-    public ParseResult<Exp> multExp(final int startPos) throws ParseException { ... }
+    public ParseResult<Exp> multExp(final int startPos) throws ParseException {
+        final ParseResult<Exp> m = primaryExp(startPos);
+        Exp result = m.result;
+        boolean shouldRun = true;
+        int pos = m.nextPos;
+        while (shouldRun) {
+            try {
+                final Token t = getToken(pos);
+                final Op op;
+                if (t instanceof StarToken) {
+                    op = new MultOp();
+                } else if (t instanceof DivToken) {
+                    op = new DivOp();
+                } else {
+                    throw new ParseException("Expected * or /");
+                }
+                final ParseResult<Exp> m2 = primaryExp(pos + 1);
+                result = new BinOpExp(result, op, m2.result);
+                pos = m2.nextPos;
+            } catch (ParseException e) {
+                shouldRun = false;
+            }
+        }
+        return new ParseResult<Exp>(result, pos);
+    }        
 
     // addExp ::= multExp ((`+` | `-`) multExp)*
     public ParseResult<Exp> addExp(final int startPos) throws ParseException {
@@ -40,7 +126,7 @@ public class Parser {
             }
         }
         return new ParseResult<Exp>(result, pos);
-    }
+    } // addExp
     
     public ParseResult<Exp> exp(final int startPos) throws ParseException {
         return addExp(startPos);
